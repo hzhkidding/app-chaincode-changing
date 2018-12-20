@@ -140,36 +140,96 @@ func (t *SimpleChaincode) addBusiness(stub shim.ChaincodeStubInterface,args []st
      return shim.Success("Success")
 
 
-
-
 }
 
 
 func (t *SimpleChaincode)  getAllBusiness(stub shim.ChaincodeStubInterface,args []string) pb.Response {
 
-	            allBuSinessBytes,err := stub.GetState(buSinessKey)
+	    allBuSinessBytes,err := stub.GetState(buSinessKey)
 
-	            var buSinessIds []string
-	            err = json.Unmarshal(buSinessIds,&allBuSinessBytes)
+	    var buSinessIds []string
+	    err = json.Unmarshal(buSinessIds,&allBuSinessBytes)
 
-	            buSinessMap : []Tb_business{}
-	            for index := range buSinessIds {
+	    buSinessMap : []Tb_business{}
+	     for index := range buSinessIds {
 
-	            	id :=buSinessIds[index]
-	            	buSinessBytes,err :=stub.GetState(id)
-	            	tb_business := Tb_business{}
+	          id :=buSinessIds[index]
+	           buSinessBytes,err :=stub.GetState(id)
+	           tb_business := Tb_business{}
 
-	            	buSinessMap = append (buSinessMap,tb_business)
+	           buSinessMap = append (buSinessMap,tb_business)
 
-	            }
+	        }
 
-	            allBuSinessJson,err :=json.Marshal(buSinessMap)
-	            return shim.Success(allBuSinessJson)
+	     allBuSinessJson,err :=json.Marshal(buSinessMap)
+	     return shim.Success(allBuSinessJson)
                
 }
+func  (t *SimpleChaincode) addMenus(stub shim.ChaincodeStubInterface,args []string) pb.Response {
 
-func (t *SimpleChaincode) getMenus(stub shim.ChaincodeStubInterface,args []string) pb.Response {
+   
+    var menusid string
+    var menusname string
+    var menusprice string
+    var menusdepict string
+    var menusimagepath string
+    var businessid string
 
+    menusid  = args[0]
+    menusname = args[1]
+    menusprice = args[2]
+    menusdepict = args[3]
+    menusimagepath = args[4]
+    businessid = args[5]
+
+    tb_menus := Tb_menus{menusID:menusid,menusName:menusname,menusPrice:menusprice,menusDepict:menusdepict:menusImagePath:menusimagepath,businessID:business}
+    key,err :=stub.CreateCompositeKey("Menus~Business:",[]string{businessid,menusid})
+     
+     if err !=nil {
+     	return shim.Error(err.Error())
+     }
+     tb_menusbytes,_ := json.Marshal(tb_menus)
+     err = stub.PutState(key,tb_menusbytes)
+     if err != nil {
+     	return shim.Error(err.Error())
+     }
+
+     return shim.Success(tb_menusbytes)
+
+}
+	
+}
+
+func (t *SimpleChaincode) getMenusByBusinessID(stub shim.ChaincodeStubInterface,args []string) pb.Response {
+      
+      var businessid string
+
+      businessid = args[0]
+
+      tb_menusMap := []Tb_menus{}
+
+      resultIterator, err := stub.GetStateByPartialCompositeKey("Menus~Business:", []string{businessid})
+    	defer resultIterator.Close()
+	    for resultIterator.HasNext() {
+		item, _ := resultIterator.Next()
+		fmt.Printf("key=%s\n", item.Key)
+		tb_menusbytes, err := stub.GetState(item.Key)
+		if err != nil {
+			return shim.Error("Failed to get state")
+		}
+		tb_menus := Tb_menus{}
+	   	err  = json.Unmarshal(tb_menusbytes, &tb_menus)
+		if err != nil {
+   			return shim.Error(err.Error())
+   		}
+
+	    tb_menusMap = append(tb_menusMap, tb_menus)
+	}
+	tb_menusMapJson, err := json.Marshal(tb_menusMap)
+	if err != nil {
+		shim.Error("Failed to decode json of productMap")
+	}
+    return shim.Success(tb_menusMapJson)
 	               
 	
 }
