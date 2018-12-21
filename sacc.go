@@ -95,8 +95,13 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	}else if function == "getMenusByBusinessID" {
 		// the old "Query" is now implemtned in invoke
 		return t.getMenusByBusinessID(stub, args)
-	
-     }
+    }else if function == "addOrders" {
+		// the old "Query" is now implemtned in invoke
+		return t.addOrders(stub, args)
+    }else if function == "getOrdersByMemberID" {
+		// the old "Query" is now implemtned in invoke
+		return t.getOrdersByMemberID(stub, args)
+    }
 	return shim.Error("Invalid invoke function name. Expecting \"invoke\" \"delete\" \"query\"")
 }
 func (t *SimpleChaincode)  invoke(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -314,7 +319,73 @@ func (t *SimpleChaincode) getMenusByBusinessID(stub shim.ChaincodeStubInterface,
 	               
 	
 }
-func main() {
+func (t *SimpleChaincode)  addOrders(stub shim.ChaincodeStubInterface,args []string) pb.Response {
+	var orderID       string          
+	var commitTime         string     
+	var amount                string
+	var totalPrice              string
+	var status                  string
+	var menusID                 string
+	var membersID               string
+
+
+	orderID = args[0]
+	commitTime = args[1]
+	amount = args[2]
+	totalPrice = args[3]
+	status = args[4]
+	menusID = args[5]
+	membersID = args[6]
+
+     tb_order := Tb_order{OrderID:orderID,CommitTime:commitTime,Amount:amount,TotalPrice:totalPrice,Status:status,MenusID:menusID,MembersID:membersID}
+
+	 key,err :=stub.CreateCompositeKey("Order~Member:",[]string{membersID,orderID})
+     
+     if err !=nil {
+     	return shim.Error(err.Error())
+     }
+     tb_orderBytes,_ := json.Marshal(tb_order)
+     err = stub.PutState(key,tb_orderBytes)
+     if err != nil {
+     	return shim.Error(err.Error())
+     }
+
+     return shim.Success(tb_orderBytes)
+
+
+}
+func (t *SimpleChaincode)  getOrdersByMemberID(stub shim.ChaincodeStubInterface,args []string) pb.Response {
+     var membersID string
+     membersID = args[0]
+     tb_orderMap := []Tb_order{}
+
+      resultIterator, err := stub.GetStateByPartialCompositeKey("Order~Member:", []string{membersID})
+    	defer resultIterator.Close()
+	    for resultIterator.HasNext() {
+		item, _ := resultIterator.Next()
+		fmt.Printf("key=%s\n", item.Key)
+		tb_orderBytes, err := stub.GetState(item.Key)
+		if err != nil {
+			return shim.Error("Failed to get state")
+		}
+		tb_order := Tb_order{}
+	   	err  = json.Unmarshal(tb_orderBytes, &tb_order)
+		if err != nil {
+   			return shim.Error(err.Error())
+   		}
+
+	    tb_orderMap = append(tb_orderMap, tb_order)
+	}
+	tb_orderMapBytes, err := json.Marshal(tb_orderMap)
+	if err != nil {
+		shim.Error("Failed to decode json of productMap")
+	}
+    return shim.Success(tb_orderMapBytes)
+	               
+
+
+}
+ func main() {
 
 	err := shim.Start(new(SimpleChaincode))
 	if err != nil {
