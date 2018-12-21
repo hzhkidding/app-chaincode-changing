@@ -96,7 +96,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		// the old "Query" is now implemtned in invoke
 		return t.getMenusByBusinessID(stub, args)
 	
-
+     }
 	return shim.Error("Invalid invoke function name. Expecting \"invoke\" \"delete\" \"query\"")
 }
 func (t *SimpleChaincode)  invoke(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -165,7 +165,7 @@ func (t *SimpleChaincode)  loginCheck(stub shim.ChaincodeStubInterface,args []st
 }
 
 func (t *SimpleChaincode) addBusiness(stub shim.ChaincodeStubInterface,args []string) pb.Response{
-
+    // var err error
      var businessID string
      
      var businessIDs []string
@@ -181,7 +181,19 @@ func (t *SimpleChaincode) addBusiness(stub shim.ChaincodeStubInterface,args []st
      var logo string
      var categoryID string 
 
-     var tb_business Tb_business   
+     var tb_business Tb_business 
+
+    businessID = args[0]
+      businessName = args[1]
+     sendOutPrice = args[2]
+     distributionPrice = args[3]
+     shopHours = args[4]
+     businessAddress = args[5]
+     businessDepict = args[6]
+     notice = args[7]
+     businessScenery = args[8]
+     logo = args[9]
+     categoryID = args[10]
 
      tb_business.BusinessID =businessID
      tb_business.BusinessName = businessName
@@ -195,14 +207,14 @@ func (t *SimpleChaincode) addBusiness(stub shim.ChaincodeStubInterface,args []st
      tb_business.Logo = logo
      tb_business.CategoryID = categoryID
 
-     allBusinessBytes,err := stub.GetState(businessKey)
-     err = json.Unmarshal(businessIDs,&allBusinessBytes)
-     businessIDs : = append (businessIDs,businessID)
-     allBusinessBytes,err = json.Marshal(businessIDs)
-     err = stub.PutState(businessKey,allBusinessBytes)
+     allBusinessBytes,_ := stub.GetState(businessKey)
+      json.Unmarshal(allBusinessBytes,&businessIDs)
+     businessIDs = append (businessIDs,businessID)
+     allBusinessBytes,_= json.Marshal(businessIDs)
+    stub.PutState(businessKey,allBusinessBytes)
 
      businessBytes,_:= json.Marshal(tb_business)
-     err := stub.PutState(businessID,businessBytes)
+     stub.PutState(businessID,businessBytes)
 
 
      return shim.Success(businessBytes)
@@ -212,25 +224,25 @@ func (t *SimpleChaincode) addBusiness(stub shim.ChaincodeStubInterface,args []st
 
 
 func (t *SimpleChaincode)  getAllBusiness(stub shim.ChaincodeStubInterface,args []string) pb.Response {
-
-	   businessListBytes,err := stub.GetState(businessKey)
+     
+	   businessListBytes,_ := stub.GetState(businessKey)
 
 	    var businessIds []string
-	    err = json.Unmarshal(businessIds,&allBusinessBytes)
+	    json.Unmarshal(businessListBytes,&businessIds)
 
 	    businessMap := []Tb_business{}
 	    for index := range businessIds {
 
 	       id :=businessIds[index]
-	       businessBytes,err :=stub.GetState(id)
+	       businessBytes,_ :=stub.GetState(id)
 	       tb_business := Tb_business{}
-	       err := json.Unmarshal(businessBytes,&tb_business)
+	       json.Unmarshal(businessBytes,&tb_business)
 
 	       businessMap = append (businessMap,tb_business)
 
 	       }
 
-	     allBusinessBytes,err :=json.Marshal(businessMap)
+	     allBusinessBytes,_ :=json.Marshal(businessMap)
 	     return shim.Success(allBusinessBytes)
                
 }
@@ -265,7 +277,7 @@ func  (t *SimpleChaincode) addMenus(stub shim.ChaincodeStubInterface,args []stri
 
      return shim.Success(tb_menusBytes)
 
-}
+
 	
 }
 
