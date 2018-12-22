@@ -63,6 +63,44 @@ type Tb_order struct {
 
 var buSinessKey = "business_list"
 
+func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	fmt.Println("ex02 Init")
+	_, args := stub.GetFunctionAndParameters()
+	if len(args) != 0 {
+		return shim.Error("Incorrect number of arguments. Expecting 0")
+	}
+	return shim.Success(nil)
+}
+func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+	fmt.Println("ex02 Invoke")
+	function, args := stub.GetFunctionAndParameters()
+	if function == "invoke" {
+		// Make payment of X units from A to B
+		return t.invoke(stub, args)
+	} else if function == "register" {
+		// Deletes an entity from its state
+		return t.register(stub, args)
+	} else if function == "loginCheck" {
+		// the old "Query" is now implemtned in invoke
+		return t.loginCheck(stub, args)
+	}else if function == "addBusiness" {
+		// the old "Query" is now implemtned in invoke
+		return t.addBusiness(stub, args)
+	}else if function == "getAllBusiness" {
+		// the old "Query" is now implemtned in invoke
+		return t.getAllBusiness(stub, args)
+	}else if function == "addMenus" {
+		// the old "Query" is now implemtned in invoke
+		return t.addMenus(stub, args)
+	}else if function == "getMenusByBusinessID" {
+		// the old "Query" is now implemtned in invoke
+		return t.getMenusByBusinessID(stub, args)
+	}
+
+	return shim.Error("Invalid invoke function name. Expecting \"invoke\" \"delete\" \"query\"")
+}
+
+
 func (t *SimpleChaincode)  register(stub shim.ChaincodeStubInterface,args []string) pb.Response {
 
 	fmt.Println("register")
@@ -132,7 +170,7 @@ func (t *SimpleChaincode) addBusiness(stub shim.ChaincodeStubInterface,args []st
      tb_business.notice = args[7]
      tb_business.businessScenery = args[8]
      tb_business.logo = args[9]
-     tb.categoryID = arg[10]
+     tb_business.categoryID = arg[10]
      
      buSinessBytes := json.Marshal(tb_business)
      err := stub.PutState(businessID,buSinessBytes)
